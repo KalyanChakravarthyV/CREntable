@@ -14,9 +14,21 @@ export class Rentable {
         spaces.forEach(s => buildings.add(s.floor.building));
 
         buildings.forEach(b => {
-            let total = 0;
-            spaces.forEach(s => { if (s.floor.building === b && s.bomaType === BOMAType.BUILDING_COMMON) total += s.area; });
-            b.buildingCommon = total;
+            let buildingCommon = 0, totalFloorAssignable = 0,totalAssignable = 0, verticalPenetration = 0;
+            spaces.forEach(s => {
+                if (s.building === b && s.bomaType === BOMAType.ASSIGNABLE) {totalFloorAssignable += (s.area*s.floor.floorRU);
+                    totalAssignable += s.area;
+                }
+                else if (s.building === b && s.bomaType === BOMAType.BUILDING_COMMON) buildingCommon += s.area;
+                else if (s.building === b && s.bomaType === BOMAType.VERTICAL_PENETRATION) verticalPenetration += s.area;
+            });
+
+            b.buildingCommon = buildingCommon;
+            b.verticalPenetration = verticalPenetration;
+            b.totalAssignable = totalAssignable;
+            b.buildingRU = (totalFloorAssignable + buildingCommon) / totalFloorAssignable;
+
+            console.log(`Building RU for ${b.name} :- ${b.buildingRU}`)
 
         });
 
@@ -49,10 +61,35 @@ export class Rentable {
             f.floorCommon = floorCommon + f.secondaryCirculation;
             f.verticalPenetration = verticalPenetration;
             f.totalAssignable = assignable;
-            f.floorRU = (assignable + floorCommon) / assignable;
+            f.floorRU = (f.totalAssignable + f.floorCommon) / f.totalAssignable;
 
-
+            console.log(`Floor RU for ${f.name} :- ${f.floorRU}`)
         });
 
     }
+    
+    calculateRentable(spaces: Space[]) {
+
+        const totalRentableMap = new Map<Building, Number>();
+
+        spaces.forEach(s => {
+            s.rentable = (s.bomaType === BOMAType.ASSIGNABLE) ?
+                (s.area * s.floor.floorRU * s.building.buildingRU) : 0
+
+            if(s.rentable === 0 ) return;
+
+            let rentable = totalRentableMap.get(s.building) ? totalRentableMap.get(s.building).valueOf() : 0;
+            // console.log(`${s.bomaType} : ${s.rentable}, ${rentable}`);
+            totalRentableMap.set(s.building, new Number(rentable + s.rentable));
+        });
+
+
+
+        for (let [b, totalRentable] of totalRentableMap) {
+            b.totalRentable = totalRentable.valueOf();
+        }
+        console.log(spaces);
+
+    }
+
 }

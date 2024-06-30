@@ -9,6 +9,7 @@ export class Space {
         this.name = name;
         this.area = area;
         this.floor = floor;
+        this.building = floor.building;
     }
     name:string;
     rentable : number;

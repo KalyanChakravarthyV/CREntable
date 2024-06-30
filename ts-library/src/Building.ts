@@ -8,11 +8,12 @@ export class Building {
     }
     name:String;
     totalRentable : number;
-    totalArea: number;
+    totalAssignable: number;
     floors: Floor[];
     spaces: Space[];
 
     buildingCommon :number;
+    buildingRU:number;
     verticalPenetration:number;
     secondaryCirculation:number;
 
