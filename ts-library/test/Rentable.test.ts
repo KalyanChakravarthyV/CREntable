@@ -9,55 +9,72 @@ import { Building } from "../src/Building";
 let spaces: Space[] = new Array();
 
 let myNewBuilding = new Building("My New Building");
-let tenthFloor = new Floor('Ground Floor', 100, myNewBuilding);
 
-for (let i = 0; i < 18; i++) {
+let fifthFloor = new Floor('5th Floor', 1000, myNewBuilding);
+let sixthFloor = new Floor('6th Floor', 1000, myNewBuilding);
+let seventhFloor = new Floor('7th Floor', 1000, myNewBuilding);
+let tenthFloor = new Floor('10th Floor', 1000, myNewBuilding);
 
-    let s = new Space('GG-' + i, 12, tenthFloor);
-    s.area = 12;
-    s.bomaType = BOMAType.ASSIGNABLE;
-    spaces.push(s);
+let allFloors = [fifthFloor, sixthFloor, seventhFloor, tenthFloor];
 
-}
+//Add 600 SFT Assignable spaces to all floors - 50*4
 
-let fifthFloor = new Floor('5th Floor', 100, myNewBuilding);
+allFloors.forEach((f) => {
+    for (let i = 0; i < 50; i++) {
 
-
-for (let i = 0; i < 2; i++) {
-
-    let s = new Space("AA" + i, 30, fifthFloor);
-    // s.area = 100;
-
-    s.bomaType = BOMAType.BUILDING_COMMON;
-    s.floor = fifthFloor;
-    spaces.push(s);
-
-}
-
-let sixthFloor = new Floor('6th Floor', 100, myNewBuilding);
+        let s = new Space('AA-' + i, 12, f);
+        s.area = 12;
+        s.bomaType = BOMAType.ASSIGNABLE;
+        spaces.push(s);
+    }
+});
 
 
-for (let i = 0; i < 5; i++) {
+//Add 100 Buiding Common to Fifth Floor - 2
+(() => {
+    for (let i = 0; i < 2; i++) {
 
-    let s = new Space("BB-" + i, 12, sixthFloor);
-    // s.area = 10;
-    s.bomaType = BOMAType.FLOOR_COMMON;
-    spaces.push(s);
+        let s = new Space("BC-" + i, 50, fifthFloor);
+        s.bomaType = BOMAType.BUILDING_COMMON;
+        s.floor = fifthFloor;
+        spaces.push(s);
 
-}
+    }
+})();
 
+//Add 60 FC, 20 VP to Sixth Floor - 5
+(() => {
+    for (let i = 0; i < 3; i++) {
+        let s = new Space("FC-" + i, 20, sixthFloor);
+        s.bomaType = BOMAType.FLOOR_COMMON;
+        spaces.push(s);
+    }
 
-let seventhFloor = new Floor('6th Floor', 100, myNewBuilding);
+    for (let i = 0; i < 2; i++) {
+        let s = new Space("VP-" + i, 10, sixthFloor);
+        s.bomaType = BOMAType.VERTICAL_PENETRATION;
+        spaces.push(s);
+    }
 
+})();
 
-for (let i = 0; i < 5; i++) {
+//Add 36 FC, 45 VP to Seventh Floor - 6
+//SC = 1000 - (36+45+600)
+(() => {
+    for (let i = 0; i < 3; i++) {
+        let s = new Space("FC-" + i, 12, seventhFloor);
+        s.bomaType = BOMAType.FLOOR_COMMON;
+        spaces.push(s);
 
-    let s = new Space("BB-" + i, 12, seventhFloor);
-    // s.area = 10;
-    if (i % 2 == 0) s.bomaType = BOMAType.FLOOR_COMMON;
-    spaces.push(s);
+    }
 
-}
+    for (let i = 0; i < 3; i++) {
+        let s = new Space("VP-" + i, 15, seventhFloor);
+        s.bomaType = BOMAType.VERTICAL_PENETRATION;
+        spaces.push(s);
+    }
+})();
+
 const rentable = new Rentable();
 
 
@@ -68,39 +85,41 @@ const myObj = Object.groupBy(array, (num, index) => {
 
 test('Building Common for My New Building ', () => {
 
-
-
-
-    expect(spaces.length).toBe(30);
-
+    expect(spaces.length).toBe(213);
     // expect(myObj["even"].length).toBe(2);
-
-
     rentable.calculateBuildingCommon(spaces);
+    expect(myNewBuilding.buildingCommon).toBe(100);
+});
 
-    expect(myNewBuilding.buildingCommon).toBe(60);
+rentable.calculateFloorTotals(spaces);
+
+
+test('Floor Totals for Fifth Floor ', () => {
+
+    expect(fifthFloor.secondaryCirculation).toBe(300);
+    expect(fifthFloor.floorCommon).toBe(300);
+    expect(fifthFloor.verticalPenetration).toBe(0);
+    expect(fifthFloor.totalAssignable).toBe(600);
+
 
 
 });
 
-rentable.calculateFloorCommon(spaces);
+test('Floor Totals for Sixth Floor ', () => {
 
-
-test('Floor Common for Sixth Floor ', () => {
-
-
-
-
-    expect(spaces.length).toBe(30);
-
-    expect(sixthFloor.floorCommon).toBe(60);
+    expect(sixthFloor.floorCommon).toBe(380);
+    expect(sixthFloor.verticalPenetration).toBe(20);
+    expect(sixthFloor.totalAssignable).toBe(600);
 
 
 });
-test('Floor Common for Seventh Floor ', () => {
 
+test('Floor Totals for Seventh Floor ', () => {
 
-    expect(seventhFloor.floorCommon).toBe(36);
+    expect(seventhFloor.verticalPenetration).toBe(45);
+    expect(seventhFloor.secondaryCirculation).toBe(1000 - (36+45+600));
+    expect(seventhFloor.floorCommon).toBe((1000 - (36+45+600))+ 36);
+
 
 
 });
@@ -108,7 +127,7 @@ test('Floor Common for Seventh Floor ', () => {
 test('Floor Common for Tenth Floor ', () => {
 
 
-    expect(tenthFloor.floorCommon).toBe(0);
+    expect(tenthFloor.floorCommon).toBe(tenthFloor.secondaryCirculation);
 
 
 });

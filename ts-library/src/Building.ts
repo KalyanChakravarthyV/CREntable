@@ -11,7 +11,9 @@ export class Building {
     totalArea: number;
     floors: Floor[];
     spaces: Space[];
-    
+
     buildingCommon :number;
+    verticalPenetration:number;
+    secondaryCirculation:number;
 
 }
